@@ -92,7 +92,7 @@ export default function ShipmentMap({ shipments }) {
   );
 
   return (
-    <MapContainer center={center} zoom={5} scrollWheelZoom={false} style={containerStyle}>
+    <MapContainer center={center} zoom={5} scrollWheelZoom={true} touchZoom={true} style={containerStyle}>
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
