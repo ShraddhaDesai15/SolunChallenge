@@ -4,6 +4,7 @@ import { db } from "../firebase/firebaseConfig";
 
 export function useShipments() {
   const [shipments, setShipments] = useState([]);
+  
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "shipments"), () => {

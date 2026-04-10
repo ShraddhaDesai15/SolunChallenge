@@ -1,29 +1,212 @@
 import React, { useState } from "react";
 
-export default function SimulationPanel() {
-  const [weather, setWeather] = useState("Clear");
+const weatherOptions = [
+  { value: "clear", label: "Clear skies" },
+  { value: "rain", label: "Heavy rain" },
+  { value: "cyclone", label: "Cyclone warning" },
+  { value: "fog", label: "Dense fog" },
+];
+
+const routeOptions = [
+  { value: "highway", label: "Highway" },
+  { value: "state", label: "State roads" },
+  { value: "urban", label: "City / urban" },
+];
+
+const disruptionsList = [
+  { key: "strike", label: "Port strike", impact: 12 },
+  { key: "fuel", label: "Fuel shortage", impact: 8 },
+  { key: "road", label: "Road closure", impact: 15 },
+];
+
+// simple scoring (more realistic than “perfect formula”)
+function calculateScore(p, disruptions) {
+  let score = 0;
+
+  if (p.weather === "rain") score += 20;
+  if (p.weather === "cyclone") score += 40;
+  if (p.weather === "fog") score += 15;
+
+  if (p.route === "state") score += 8;
+  if (p.route === "urban") score += 15;
+
+  score += p.traffic * 0.2;
+  score += p.fatigue * 2;
+  score += p.distance / 150;
+
+  disruptions.forEach((d) => {
+    const found = disruptionsList.find((x) => x.key === d);
+    if (found) score += found.impact;
+  });
+
+  return Math.min(Math.round(score), 100);
+}
+
+function ScoreBar({ score }) {
+  let color = "bg-emerald-500";
+  let label = "Low";
+
+  if (score > 25) {
+    color = "bg-yellow-500";
+    label = "Moderate";
+  }
+  if (score > 50) {
+    color = "bg-red-400";
+    label = "High";
+  }
+  if (score > 75) {
+    color = "bg-red-700";
+    label = "Critical";
+  }
 
   return (
-    <div className="bg-white p-6 rounded-2xl shadow-sm border space-y-6">
-      <h3 className="font-bold text-lg">Control Panel</h3>
+    <div className="bg-gray-50 p-3 rounded-lg">
+      <div className="flex justify-between text-xs mb-1">
+        <span>Risk level</span>
+        <span className="font-semibold">{label}</span>
+      </div>
+
+      <div className="h-2 bg-gray-200 rounded">
+        <div
+          className={`h-2 rounded ${color}`}
+          style={{ width: `${score}%` }}
+        />
+      </div>
+
+      <p className="text-sm mt-2 font-medium">{score}/100</p>
+    </div>
+  );
+}
+
+export default function SimulationPanel({ onSimulate }) {
+  const [data, setData] = useState({
+    weather: "clear",
+    route: "highway",
+    traffic: 40,
+    fatigue: 3,
+    distance: 600,
+    cargo: 25,
+  });
+
+  const [issues, setIssues] = useState([]);
+
+  const score = calculateScore(data, issues);
+
+  const toggleIssue = (key) => {
+    setIssues((prev) =>
+      prev.includes(key)
+        ? prev.filter((x) => x !== key)
+        : [...prev, key]
+    );
+  };
+
+  return (
+    <div className="bg-white p-5 rounded-xl shadow space-y-4">
+      <h2 className="font-semibold text-gray-800">Simulation Controls</h2>
+
+      {/* Weather */}
       <div>
-        <label className="text-sm font-medium text-gray-500">Weather Scenario</label>
-        <select 
-          className="w-full mt-1 border p-2 rounded-lg bg-gray-50"
-          value={weather}
-          onChange={(e) => setWeather(e.target.value)}
+        <label className="text-sm text-gray-500">Weather</label>
+        <select
+          value={data.weather}
+          onChange={(e) =>
+            setData({ ...data, weather: e.target.value })
+          }
+          className="w-full border p-2 rounded mt-1"
         >
-          <option>Clear Skies</option>
-          <option>Heavy Rain</option>
-          <option>Cyclone Warning</option>
+          {weatherOptions.map((w) => (
+            <option key={w.value} value={w.value}>
+              {w.label}
+            </option>
+          ))}
         </select>
       </div>
+
+      {/* Route */}
       <div>
-        <label className="text-sm font-medium text-gray-500">Traffic Density</label>
-        <input type="range" className="w-full accent-emerald-600" />
+        <label className="text-sm text-gray-500">Route</label>
+        <select
+          value={data.route}
+          onChange={(e) =>
+            setData({ ...data, route: e.target.value })
+          }
+          className="w-full border p-2 rounded mt-1"
+        >
+          {routeOptions.map((r) => (
+            <option key={r.value} value={r.value}>
+              {r.label}
+            </option>
+          ))}
+        </select>
       </div>
-      <button className="w-full bg-black text-white py-2 rounded-lg font-medium">
-        Apply Simulation
+
+      {/* Sliders */}
+      <div>
+        <label className="text-sm">Traffic: {data.traffic}%</label>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          value={data.traffic}
+          onChange={(e) =>
+            setData({ ...data, traffic: Number(e.target.value) })
+          }
+          className="w-full"
+        />
+      </div>
+
+      <div>
+        <label className="text-sm">Driver fatigue: {data.fatigue}</label>
+        <input
+          type="range"
+          min="0"
+          max="10"
+          value={data.fatigue}
+          onChange={(e) =>
+            setData({ ...data, fatigue: Number(e.target.value) })
+          }
+          className="w-full"
+        />
+      </div>
+
+      <div>
+        <label className="text-sm">Distance: {data.distance} km</label>
+        <input
+          type="range"
+          min="50"
+          max="2000"
+          step="50"
+          value={data.distance}
+          onChange={(e) =>
+            setData({ ...data, distance: Number(e.target.value) })
+          }
+          className="w-full"
+        />
+      </div>
+
+      {/* Disruptions */}
+      <div>
+        <p className="text-sm text-gray-500 mb-1">Disruptions</p>
+        {disruptionsList.map((d) => (
+          <label key={d.key} className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={issues.includes(d.key)}
+              onChange={() => toggleIssue(d.key)}
+            />
+            {d.label}
+          </label>
+        ))}
+      </div>
+
+      {/* Score */}
+      <ScoreBar score={score} />
+
+      <button
+        onClick={() => onSimulate({ params: data, disruptions: issues, score })}
+        className="w-full bg-black text-white py-2 rounded hover:bg-gray-800"
+      >
+        Run Simulation
       </button>
     </div>
   );
