@@ -12,6 +12,7 @@ async function createShipment(origin, destination, priority) {
         const response = {
             message: "Shipment created successfully",
             shipmentId: shipmentData.id,
+            status: "pending"
         }
 
         return response;
@@ -46,7 +47,7 @@ async function getAllShipments(){
 
 async function getShipmentById(shipmentId){
     try{
-        const shipmentDoc = await db.collection("shpiments").doc(shipmentId).get();
+        const shipmentDoc = await db.collection("shipments").doc(shipmentId).get();
         if(!shipmentDoc.exists){
             console.error("Shipment not found");
             return null;

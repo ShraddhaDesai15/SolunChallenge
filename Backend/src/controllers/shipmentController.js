@@ -1,4 +1,4 @@
-const { createShipment, getAllShipments, getShipmentById } = require("../services/firestoreService");
+const { createShipment, getAllShipments, getShipmentById, updateShipment } = require("../services/firestoreService");
 
 exports.createShipment = async(req, res) => {
     try{
@@ -31,29 +31,29 @@ exports.getAllShipments = async(req, res) => {
 
 exports.getShipmentById = async(req, res) => {
     try{
-        const shipmentId  = req.params.id;
-        if(!shipmentId){
+        const { id }  = req.params;
+        if(!id){
             throw new Error("Shipment ID is required");
         }
 
-        const shipment = await getShipmentById(shipmentId);
+        const shipment = await getShipmentById(id);
         if(!shipment){
             throw new Error("Shipment not found");
         }
         res.json(shipment);
 
     }catch(err){
-        res.error("Error fetching shipment:", err);
+        res.status(404).json({ error: "Shipment not found" })
     }
 }
 
 exports.updateShipmentStatus = async(req, res) => {
     try{
-        const shipmentId  = req.params.id;
+        const { id }  = req.params;
 
         const { status } = req.body;
 
-        if(!shipmentId || !status){
+        if(!id || !status){
             throw new Error("Shipment ID and status are required");
         }
 
@@ -65,11 +65,11 @@ exports.updateShipmentStatus = async(req, res) => {
             status,
             updatedAt: new Date(),
         }
-        const response = await updateShipmentStatus(shipmentId, updateData);
+        const response = await updateShipment(id, updateData);
 
         res.json(response);
 
     }catch(err){
-        res.error("Error updating shipment:", err);
+        res.status(404).json({ error: err.message });
     }
 }
