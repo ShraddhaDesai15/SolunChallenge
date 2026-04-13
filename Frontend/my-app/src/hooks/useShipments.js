@@ -1,29 +1,42 @@
 import { useState, useEffect } from "react";
-import { collection, onSnapshot } from "firebase/firestore";
-import { db } from "../firebase/firebaseConfig";
+import { getShipments } from "../api/shipments";
 
 export function useShipments() {
   const [shipments, setShipments] = useState([]);
+  const [error, setError] = useState(null);
   
 
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, "shipments"), () => {
-      setShipments([
-        {
-          id: "1",
-          shipmentId: "SHIP001",
-          origin: { lat: 19.076, lng: 72.8777, address: "Mumbai" },
-          destination: { lat: 28.7041, lng: 77.1025, address: "Delhi" },
-          status: "in_transit",
-          riskLevel: "High",
-          delayProbability: 70,
-          aiExplanation: "Traffic congestion",
-        },
-      ]);
-    });
+    let isMounted = true;
 
-    return () => unsub();
+    const loadShipments = async () => {
+      try {
+        const data = await getShipments();
+
+        if (isMounted) {
+          setShipments(data);
+          setError(null);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err.message);
+          setShipments([]);
+        }
+      }
+    };
+
+    loadShipments();
+    const intervalId = setInterval(loadShipments, 5000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
   }, []);
+
+  if (error) {
+    console.error("Shipment loading error:", error);
+  }
 
   return shipments;
 }

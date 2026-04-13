@@ -4,7 +4,9 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "dev": "nodemon server.js"
+    "dev": "concurrently --kill-others-on-fail --names api,ml --prefix-colors blue,green \"npm:dev:api\" \"npm:dev:ml\"",
+    "dev:api": "nodemon server.js",
+    "dev:ml": "python ml_service/app.py"
   },
   "keywords": [],
   "author": "",
@@ -16,5 +18,8 @@
     "express": "^5.2.1",
     "firebase-admin": "^13.8.0",
     "nodemon": "^3.1.14"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
 }

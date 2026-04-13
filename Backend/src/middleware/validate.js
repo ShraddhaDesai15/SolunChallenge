@@ -69,4 +69,44 @@ const validate_maps = (req, res, next) => {
     }
 };
 
-module.exports = {validate_shipment, validate_maps};
+const validate_prediction = (req, res, next) => {
+    try {
+        const requiredFields = [
+            "distanceKm",
+            "trafficDurationMin",
+            "weatherSeverity",
+            "timeOfDay",
+            "historicalDelayAvg"
+        ];
+
+        const missingFields = requiredFields.filter(
+            (field) => req.body[field] === undefined || req.body[field] === null
+        );
+
+        if (missingFields.length > 0) {
+            return res.status(400).json({
+                error: `Missing required fields: ${missingFields.join(", ")}`
+            });
+        }
+
+        const invalidField = requiredFields.find((field) => {
+            const value = Number(req.body[field]);
+            return Number.isNaN(value);
+        });
+
+        if (invalidField) {
+            return res.status(400).json({
+                error: `${invalidField} must be numeric`
+            });
+        }
+
+        next();
+
+    } catch (err) {
+        return res.status(500).json({
+            error: err.message
+        });
+    }
+};
+
+module.exports = {validate_shipment, validate_maps, validate_prediction};

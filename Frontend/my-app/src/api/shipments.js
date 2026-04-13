@@ -1,3 +1,14 @@
+export async function getShipments() {
+  const res = await fetch("/api/v1/shipments");
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch shipments");
+  }
+
+  const data = await res.json();
+  return Array.isArray(data) ? data : data.shipments || [];
+}
+
 export async function createShipment(payload) {
   const res = await fetch("/api/v1/shipments", {
     method: "POST",
@@ -5,6 +16,10 @@ export async function createShipment(payload) {
     body: JSON.stringify(payload),
   });
   
-  if (!res.ok) throw new Error("Failed to create shipment");
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.error || "Failed to create shipment");
+  }
+
   return res.json();
 }

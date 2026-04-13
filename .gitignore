@@ -14,6 +14,12 @@ Backend/node_modules/
 Backend/dist/
 Backend/build/
 Backend/*.log
+Backend/ml_service/.venv/
+Backend/ml_service/__pycache__/
+Backend/ml_service/data/
+Backend/ml_service/models/*.json
+Backend/ml_service/models/metadata.json
+Backend/ml_service/*.pyc
 
 # --- Frontend Folder ---
 Frontend/node_modules/

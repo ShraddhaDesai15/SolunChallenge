@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import Navbar from "../components/Navbar";
+import { createShipment } from "../api/shipments";
 
 const PRIORITY_OPTIONS = [
   { value: "low",    label: "Low",    icon: "🌿", desc: "3–5 days",  cost: 480  },
@@ -124,32 +125,35 @@ export default function CreateShipment() {
   const onSubmit = async () => {
     setSubmitting(true);
 
-    const payload = {
-      origin: {
-        address: `${form.origin.address}, ${form.origin.city} ${form.origin.pin}`,
-        lat: 19.07,
-        lng: 72.87,
-      },
-      destination: {
-        address: `${form.destination.address}, ${form.destination.city} ${form.destination.pin}`,
-        lat: 28.7,
-        lng: 77.1,
-      },
-      weight:       parseFloat(form.weight) || null,
-      packageType:  form.packageType,
-      instructions: form.instructions,
-      priority:     form.priority,
-      constraints:  form.constraints,
-      pickupDate:   form.pickupDate,
-      timeWindow:   form.timeWindow,
-    };
+    try {
+      const payload = {
+        origin: {
+          address: `${form.origin.address}, ${form.origin.city} ${form.origin.pin}`,
+          lat: 19.07,
+          lng: 72.87,
+        },
+        destination: {
+          address: `${form.destination.address}, ${form.destination.city} ${form.destination.pin}`,
+          lat: 28.7,
+          lng: 77.1,
+        },
+        weight:       parseFloat(form.weight) || null,
+        packageType:  form.packageType,
+        instructions: form.instructions,
+        priority:     form.priority,
+        constraints:  form.constraints,
+        pickupDate:   form.pickupDate,
+        timeWindow:   form.timeWindow,
+      };
 
-    console.log("Payload:", payload);
-
-    // simulate API call
-    await new Promise((r) => setTimeout(r, 1200));
-    toast.success("Shipment created!");
-    setTimeout(() => navigate("/"), 1500);
+      await createShipment(payload);
+      toast.success("Shipment created!");
+      setTimeout(() => navigate("/"), 1000);
+    } catch (error) {
+      toast.error(error.message || "Could not create shipment");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // ── derived ─────────────────────────────────────────────────────

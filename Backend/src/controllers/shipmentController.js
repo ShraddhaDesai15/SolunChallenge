@@ -1,6 +1,64 @@
 const { createShipment, getAllShipments, getShipmentById, updateShipment } = require("../services/firestoreService");
 const {getRoute} = require("../services/mapsService");
 const { getWeather } = require("../services/weatherService");
+const { predictShipmentDelay } = require("../services/mlService");
+
+function getTrafficLevel(distanceKm, trafficDurationMin) {
+    const distance = Number(distanceKm) || 0;
+    const duration = Number(trafficDurationMin) || 0;
+
+    if (distance <= 0 || duration <= 0) {
+        return "Moderate";
+    }
+
+    const minutesPerKm = duration / distance;
+
+    if (minutesPerKm < 1.6) {
+        return "Low";
+    }
+
+    if (minutesPerKm < 2.4) {
+        return "Moderate";
+    }
+
+    return "Heavy";
+}
+
+function buildEta(trafficDurationMin, delayProbability, startTime) {
+    const now = startTime ? new Date(startTime) : new Date();
+    const validStart = Number.isNaN(now.getTime()) ? new Date() : now;
+    const trafficMinutes = Number(trafficDurationMin) || 0;
+    const delayMinutes = Math.round(Math.max(15, trafficMinutes * 0.35) * ((Number(delayProbability) || 0) / 100));
+    const totalMinutes = trafficMinutes + delayMinutes;
+
+    return new Date(validStart.getTime() + totalMinutes * 60 * 1000).toISOString();
+}
+
+exports.predictRisk = async(req, res) => {
+    try{
+        const features = {
+            distanceKm: Number(req.body.distanceKm) || 0,
+            trafficDurationMin: Number(req.body.trafficDurationMin) || 0,
+            weatherSeverity: Number(req.body.weatherSeverity) || 0,
+            timeOfDay: Number(req.body.timeOfDay) || 0,
+            historicalDelayAvg: Number(req.body.historicalDelayAvg) || 0,
+        };
+
+        const prediction = await predictShipmentDelay(features);
+
+        res.json({
+            delayProbability: prediction.delayProbability,
+            riskLevel: prediction.riskLevel,
+            explanation: prediction.explanation,
+            modelVersion: prediction.modelVersion,
+            features: prediction.features,
+        });
+        
+    }catch(err){
+        console.error("Error predicting shipment risk:", err);
+        res.status(500).json({ error: err.message });
+    }
+}
 
 exports.createShipment = async(req, res) => {
     try{
@@ -12,6 +70,16 @@ exports.createShipment = async(req, res) => {
 
         const routeData = await getRoute(origin, destination);
         const weatherData = await getWeather(origin.lat, origin.lng);
+        const createdAt = new Date().toISOString();
+        const timeOfDay = new Date(createdAt).getHours();
+        const mlFeatures = {
+            distanceKm: routeData?.distanceKm || 0,
+            trafficDurationMin: routeData?.durationMin || 0,
+            weatherSeverity: weatherData?.weatherSeverity || 2,
+            timeOfDay,
+            historicalDelayAvg: 0
+        };
+        const prediction = await predictShipmentDelay(mlFeatures);
 
         const shipmentData = {
             origin,
@@ -21,6 +89,7 @@ exports.createShipment = async(req, res) => {
             status: "pending",
 
             distanceKm: routeData?.distanceKm || null,
+            baseDurationMin: routeData?.durationMin || null,
             trafficDurationMin: routeData?.durationMin || null,
             routePolyline: routeData?.routePolyline || "",
             alternateRoutes: routeData?.alternateRoutes || [],
@@ -28,23 +97,25 @@ exports.createShipment = async(req, res) => {
             weatherCondition: weatherData?.weatherCondition || "Unknown",
             weatherSeverity: weatherData?.weatherSeverity || 2,
 
-            trafficLevel: "Moderate",
+            trafficLevel: getTrafficLevel(routeData?.distanceKm, routeData?.durationMin),
 
-            delayProbability: null,
-            riskLevel: null,
-            eta: null,
+            delayProbability: prediction.delayProbability,
+            riskLevel: prediction.riskLevel,
+            eta: buildEta(routeData?.durationMin, prediction.delayProbability, createdAt),
 
             cascadeAffected: [],
-            aiExplanation: "",
+            aiExplanation: prediction.explanation,
+            mlFeatures: prediction.features,
+            modelVersion: prediction.modelVersion,
 
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            createdAt,
+            updatedAt: createdAt
     };
     const savedShipment = await createShipment(shipmentData);
-        res.status(201).json(shipmentData);
+        res.status(201).json(savedShipment);
         
     }catch(err){
-        res.error("Error creating shipment:", err);
+        console.error("Error creating shipment:", err);
         res.status(500).json({ error: err.message });
     }
 }
@@ -56,7 +127,8 @@ exports.getAllShipments = async(req, res) => {
 
 
     }catch(err){
-        res.error("Error fetching shipments:", err);
+        console.error("Error fetching shipments:", err);
+        res.status(500).json({ error: err.message });
     }
 }
 

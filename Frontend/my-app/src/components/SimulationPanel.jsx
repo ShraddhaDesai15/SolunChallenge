@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+
+import { buildModelPayload } from "../utils/simulationModel";
 
 const weatherOptions = [
   { value: "clear", label: "Clear skies" },
@@ -19,45 +21,15 @@ const disruptionsList = [
   { key: "road", label: "Road closure", impact: 15 },
 ];
 
-// simple scoring (more realistic than “perfect formula”)
-function calculateScore(p, disruptions) {
-  let score = 0;
-
-  if (p.weather === "rain") score += 20;
-  if (p.weather === "cyclone") score += 40;
-  if (p.weather === "fog") score += 15;
-
-  if (p.route === "state") score += 8;
-  if (p.route === "urban") score += 15;
-
-  score += p.traffic * 0.2;
-  score += p.fatigue * 2;
-  score += p.distance / 150;
-
-  disruptions.forEach((d) => {
-    const found = disruptionsList.find((x) => x.key === d);
-    if (found) score += found.impact;
-  });
-
-  return Math.min(Math.round(score), 100);
-}
-
-function ScoreBar({ score }) {
-  let color = "bg-emerald-500";
-  let label = "Low";
-
-  if (score > 25) {
-    color = "bg-yellow-500";
-    label = "Moderate";
-  }
-  if (score > 50) {
-    color = "bg-red-400";
-    label = "High";
-  }
-  if (score > 75) {
-    color = "bg-red-700";
-    label = "Critical";
-  }
+function ScoreBar({ preview, loading }) {
+  const score = preview?.delayProbability ?? 0;
+  const label = loading ? "Refreshing" : preview?.riskLevel || "Unknown";
+  const colorMap = {
+    Low: "bg-emerald-500",
+    Medium: "bg-yellow-500",
+    High: "bg-red-500",
+  };
+  const color = colorMap[preview?.riskLevel] || "bg-gray-300";
 
   return (
     <div className="bg-gray-50 p-3 rounded-lg">
@@ -69,16 +41,24 @@ function ScoreBar({ score }) {
       <div className="h-2 bg-gray-200 rounded">
         <div
           className={`h-2 rounded ${color}`}
-          style={{ width: `${score}%` }}
+          style={{ width: `${Math.max(4, score)}%` }}
         />
       </div>
 
-      <p className="text-sm mt-2 font-medium">{score}/100</p>
+      <p className="text-sm mt-2 font-medium">
+        {loading ? "Loading..." : `${score.toFixed(2)}/100`}
+      </p>
     </div>
   );
 }
 
-export default function SimulationPanel({ onSimulate }) {
+export default function SimulationPanel({
+  onSimulate,
+  onScenarioChange,
+  preview,
+  previewLoading,
+  previewError,
+}) {
   const [data, setData] = useState({
     weather: "clear",
     route: "highway",
@@ -90,8 +70,6 @@ export default function SimulationPanel({ onSimulate }) {
 
   const [issues, setIssues] = useState([]);
 
-  const score = calculateScore(data, issues);
-
   const toggleIssue = (key) => {
     setIssues((prev) =>
       prev.includes(key)
@@ -99,6 +77,14 @@ export default function SimulationPanel({ onSimulate }) {
         : [...prev, key]
     );
   };
+
+  useEffect(() => {
+    onScenarioChange({
+      params: data,
+      disruptions: issues,
+      payload: buildModelPayload({ params: data, disruptions: issues }),
+    });
+  }, [data, issues, onScenarioChange]);
 
   return (
     <div className="bg-white p-5 rounded-xl shadow space-y-4">
@@ -200,10 +186,19 @@ export default function SimulationPanel({ onSimulate }) {
       </div>
 
       {/* Score */}
-      <ScoreBar score={score} />
+      <ScoreBar preview={preview} loading={previewLoading} />
+      {previewError && (
+        <p className="text-xs text-red-500">{previewError}</p>
+      )}
 
       <button
-        onClick={() => onSimulate({ params: data, disruptions: issues, score })}
+        onClick={() =>
+          onSimulate({
+            params: data,
+            disruptions: issues,
+            payload: buildModelPayload({ params: data, disruptions: issues }),
+          })
+        }
         className="w-full bg-black text-white py-2 rounded hover:bg-gray-800"
       >
         Run Simulation
