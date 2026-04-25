@@ -11,6 +11,8 @@ FEATURE_COLUMNS = [
     "weatherSeverity",
     "timeOfDay",
     "historicalDelayAvg",
+    "eventImpactScore",
+    "hoursUntilEvent"
 ]
 
 
@@ -31,6 +33,12 @@ def build_feature_row(payload):
         "timeOfDay": _to_number(payload["timeOfDay"], "timeOfDay"),
         "historicalDelayAvg": _to_number(
             payload.get("historicalDelayAvg", 0), "historicalDelayAvg"
+        ),
+        "eventImpactScore": _to_number(
+            payload.get("eventImpactScore", 0), "eventImpactScore"
+        ),
+        "hoursUntilEvent": _to_number(
+            payload.get("hoursUntilEvent", 24), "hoursUntilEvent"
         ),
     }
 
@@ -74,6 +82,11 @@ def build_explanation(features, delay_probability, risk_level):
 
     if features["historicalDelayAvg"] >= 20:
         reasons.append("historical delay trend")
+
+    if features["eventImpactScore"] >= 7 and features["hoursUntilEvent"] <= 6:
+        reasons.append("major nearby event disruption")
+    elif features["eventImpactScore"] >= 5:
+        reasons.append("moderate event impact")
 
     if not reasons:
         reasons.append("stable route conditions")

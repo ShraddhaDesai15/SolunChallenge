@@ -33,5 +33,7 @@ export function buildModelPayload({ params, disruptions }) {
     weatherSeverity,
     timeOfDay,
     historicalDelayAvg: Math.round(historicalDelayAvg),
+    eventImpactScore: 0,
+    hoursUntilEvent: 24
   };
 }

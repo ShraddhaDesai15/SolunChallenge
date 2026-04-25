@@ -2,6 +2,7 @@ const { createShipment, getAllShipments, getShipmentById, updateShipment } = req
 const {getRoute} = require("../services/mapsService");
 const { getWeather } = require("../services/weatherService");
 const { predictShipmentDelay } = require("../services/mlService");
+const { calculateEventImpact } = require("../services/eventImpactService");
 
 function getTrafficLevel(distanceKm, trafficDurationMin) {
     const distance = Number(distanceKm) || 0;
@@ -35,16 +36,19 @@ function buildEta(trafficDurationMin, delayProbability, startTime) {
 }
 
 exports.predictRisk = async(req, res) => {
+    let mlFeatures = {};
     try{
-        const features = {
+        const mlFeatures  = {
             distanceKm: Number(req.body.distanceKm) || 0,
             trafficDurationMin: Number(req.body.trafficDurationMin) || 0,
             weatherSeverity: Number(req.body.weatherSeverity) || 0,
             timeOfDay: Number(req.body.timeOfDay) || 0,
             historicalDelayAvg: Number(req.body.historicalDelayAvg) || 0,
+            eventImpactScore: Number(req.body.eventImpactScore) || 0,
+            hoursUntilEvent: Number(req.body.hoursUntilEvent) || 24
         };
 
-        const prediction = await predictShipmentDelay(features);
+        const prediction = await predictShipmentDelay(mlFeatures );
 
         res.json({
             delayProbability: prediction.delayProbability,
@@ -57,13 +61,13 @@ exports.predictRisk = async(req, res) => {
     }catch(err){
         console.error("ML failed:", err.message);
 
-        prediction = {
-            delayProbability: 0,
-            riskLevel: "Low",
-            explanation: "ML service unavailable",
-            features: mlFeatures,
-            modelVersion: "fallback"
-        };
+        res.status(500).json({
+      delayProbability: 0,
+      riskLevel: "Low",
+      explanation: "ML service unavailable",
+      features: mlFeatures,
+      modelVersion: "fallback"
+    });
     }
 }
 
@@ -87,16 +91,51 @@ exports.createShipment = async(req, res) => {
 
         const routeData = await getRoute(origin, destination);
         const weatherData = await getWeather(origin.lat, origin.lng);
+
         const createdAt = new Date().toISOString();
         const timeOfDay = new Date(createdAt).getHours();
+
+        const tempEta = new Date(Date.now() + (routeData?.durationMin || 0) * 60000);
+        const eventData = calculateEventImpact(
+        origin,
+        destination,
+        tempEta
+        );
+
+        let hoursUntilEvent = 24;
+        if (eventData.externalEvents.length > 0) {
+        const eventTime = new Date(eventData.externalEvents[0].time);
+        const shipmentETA = new Date(tempEta);
+
+        hoursUntilEvent = Math.abs(
+            (eventTime - shipmentETA) / (1000 * 60 * 60)
+        );
+        }
+
         const mlFeatures = {
             distanceKm: routeData?.distanceKm || 0,
             trafficDurationMin: routeData?.durationMin || 0,
             weatherSeverity: weatherData?.weatherSeverity || 2,
             timeOfDay,
-            historicalDelayAvg: 0
+            historicalDelayAvg: 0,
+            eventImpactScore: eventData.eventImpactScore,
+            hoursUntilEvent: hoursUntilEvent
         };
         const prediction = await predictShipmentDelay(mlFeatures);
+        const eta = buildEta(
+            routeData?.durationMin,
+            prediction.delayProbability,
+            createdAt
+            );
+        
+
+        let enhancedExplanation = prediction.explanation;
+
+        if (eventData.externalEvents.length > 0) {
+        const event = eventData.externalEvents[0];
+
+        enhancedExplanation += ` Likely delay due to ${event.type} event (${event.name}) around ${event.time}.`;
+        }
 
         const shipmentData = {
             origin,
@@ -110,6 +149,7 @@ exports.createShipment = async(req, res) => {
             trafficDurationMin: routeData?.durationMin || null,
             routePolyline: routeData?.routePolyline || "",
             alternateRoutes: routeData?.alternateRoutes || [],
+            hoursUntilEvent: hoursUntilEvent,
 
             weatherCondition: weatherData?.weatherCondition || "Unknown",
             weatherSeverity: weatherData?.weatherSeverity || 2,
@@ -118,10 +158,13 @@ exports.createShipment = async(req, res) => {
 
             delayProbability: prediction.delayProbability,
             riskLevel: prediction.riskLevel,
-            eta: buildEta(routeData?.durationMin, prediction.delayProbability, createdAt),
+            eta: eta,
+
+            eventImpactScore : eventData.eventImpactScore,
+            externalEvents : eventData.externalEvents,
 
             cascadeAffected: [],
-            aiExplanation: prediction.explanation,
+            aiExplanation: enhancedExplanation,
             mlFeatures: prediction.features,
             modelVersion: prediction.modelVersion,
 

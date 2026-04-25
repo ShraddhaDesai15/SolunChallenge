@@ -1,6 +1,7 @@
 import json
 from datetime import datetime, timezone
 from pathlib import Path
+import numpy as np
 
 import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
@@ -32,6 +33,18 @@ def ensure_dataset():
 def main():
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
     dataset = ensure_dataset()
+
+    event_scores = np.random.randint(0, 10, size=len(dataset))
+
+    hours_until = np.random.uniform(0, 24, size=len(dataset))
+    dataset["eventImpactScore"] = event_scores
+    dataset["hoursUntilEvent"] = hours_until
+
+    dataset["delayProbability"] += (
+        event_scores * (1 - (hours_until / 24)) * 2
+    )
+
+    dataset["delayProbability"] = dataset["delayProbability"].clip(0, 100)
 
     features = dataset[FEATURE_COLUMNS]
     target = dataset["delayProbability"]
