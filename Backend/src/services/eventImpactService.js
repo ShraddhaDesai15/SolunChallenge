@@ -1,8 +1,8 @@
-// backend/src/services/eventImpactService.js
+
 
 const { getRelevantEvents } = require("./eventCalendarService");
 
-// Haversine formula to calculate distance (in km)
+
 function calculateDistance(lat1, lng1, lat2, lng2) {
   const R = 6371;
 
@@ -21,16 +21,13 @@ function calculateDistance(lat1, lng1, lat2, lng2) {
   return R * c;
 }
 
-// Convert score → label (frontend requirement)
 function getImpactLabel(score) {
   if (score >= 7) return "High";
   if (score >= 4) return "Medium";
   return "Low";
 }
 
-/**
- * MAIN FUNCTION
- */
+
 function calculateEventImpact(origin, destination, eta) {
   const events = getRelevantEvents(eta); // next 48 hours
 
@@ -67,14 +64,14 @@ function calculateEventImpact(origin, destination, eta) {
         let impactScore = event.baseImpactScore;
         let expectedDelayMin = event.baseDelayMin;
 
-        // Type-based adjustment
+      
         if (event.type === "festival") {
         impactScore += 1;
         expectedDelayMin += 10;
         }
 
         if (event.type === "rally") {
-        impactScore += 2;          // rallies are more disruptive
+        impactScore += 2;          
         expectedDelayMin += 15;
         }
 

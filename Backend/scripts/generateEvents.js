@@ -3,7 +3,6 @@ const path = require("path");
 
 const outputPath = path.join(__dirname, "../src/data/eventDataset.js");
 
-// Cities with coordinates
 const cities = [
   { name: "Mumbai", lat: 19.0760, lng: 72.8777 },
   { name: "Delhi", lat: 28.6139, lng: 77.2090 },
@@ -67,11 +66,11 @@ function generateDataset(count = 100) {
   return events;
 }
 
-// 🔥 MAIN
+
 const dataset = generateDataset(150);
 
 const fileContent = `module.exports = ${JSON.stringify(dataset, null, 2)};`;
 
 fs.writeFileSync(outputPath, fileContent);
 
-console.log("✅ Event dataset generated successfully!");
+console.log(" Event dataset generated successfully!");
