@@ -1,76 +1,80 @@
 import Navbar from "../components/Navbar";
 import ExternalEvents from "../components/ExternalEvents";
+import { useParams } from "react-router-dom";
+import { useShipments } from "../hooks/useShipments";
 
 // Mock — replace with real API/props
-const shipment = {
-  id: "SHP-4821",
-  origin: "Mumbai",
-  destination: "Pune",
-  status: "In Transit",
-  eta: "Today, 9:45 PM",
-  driver: "Rakesh M.",
-  route: "Mumbai–Pune Expressway",
-  externalEvents: [
-    {
-      name: "IPL Match – Wankhede",
-      type: "cricket",
-      impact: "high",
-      time: "7:00 PM",
-      location: "Wankhede Stadium",
-      delayMin: 35,
-      affectedRoute: "Western Express Hwy",
-      reason: "Post-match crowd dispersal causes severe congestion on WEH and nearby roads.",
-      shipmentsAffected: 3,
-    },
-    {
-      name: "Ganesh Visarjan Procession",
-      type: "festival",
-      impact: "high",
-      time: "6:00 PM",
-      location: "Girgaon to Chowpatty",
-      delayMin: 50,
-      affectedRoute: "Marine Drive corridor",
-      reason: "Procession blocks multiple arterial roads. Plan alternate routing.",
-      shipmentsAffected: 5,
-    },
-    {
-      name: "Peak Hour Traffic",
-      type: "traffic",
-      impact: "medium",
-      time: "5:30 – 8:00 PM",
-      location: "Sion–Panvel Highway",
-      delayMin: 18,
-      affectedRoute: "NH-48",
-      reason: "Regular evening peak — elevated vehicle density on expressway.",
-      shipmentsAffected: 2,
-    },
-    {
-      name: "Light Rain Forecast",
-      type: "weather",
-      impact: "low",
-      time: "8:00 PM",
-      location: "Khopoli Ghat",
-      delayMin: 10,
-      affectedRoute: "Khopoli Ghat section",
-      reason: "Reduced visibility on ghat road. Driver advisory issued.",
-      shipmentsAffected: 1,
-    },
-  ],
-};
+// const shipment = {
+//   id: "SHP-4821",
+//   origin: "Mumbai",
+//   destination: "Pune",
+//   status: "In Transit",
+//   eta: "Today, 9:45 PM",
+//   driver: "Rakesh M.",
+//   route: "Mumbai–Pune Expressway",
+//   externalEvents: [
+//     {
+//       name: "IPL Match – Wankhede",
+//       type: "cricket",
+//       impact: "high",
+//       time: "7:00 PM",
+//       location: "Wankhede Stadium",
+//       delayMin: 35,
+//       affectedRoute: "Western Express Hwy",
+//       reason: "Post-match crowd dispersal causes severe congestion on WEH and nearby roads.",
+//       shipmentsAffected: 3,
+//     },
+//     {
+//       name: "Ganesh Visarjan Procession",
+//       type: "festival",
+//       impact: "high",
+//       time: "6:00 PM",
+//       location: "Girgaon to Chowpatty",
+//       delayMin: 50,
+//       affectedRoute: "Marine Drive corridor",
+//       reason: "Procession blocks multiple arterial roads. Plan alternate routing.",
+//       shipmentsAffected: 5,
+//     },
+//     {
+//       name: "Peak Hour Traffic",
+//       type: "traffic",
+//       impact: "medium",
+//       time: "5:30 – 8:00 PM",
+//       location: "Sion–Panvel Highway",
+//       delayMin: 18,
+//       affectedRoute: "NH-48",
+//       reason: "Regular evening peak — elevated vehicle density on expressway.",
+//       shipmentsAffected: 2,
+//     },
+//     {
+//       name: "Light Rain Forecast",
+//       type: "weather",
+//       impact: "low",
+//       time: "8:00 PM",
+//       location: "Khopoli Ghat",
+//       delayMin: 10,
+//       affectedRoute: "Khopoli Ghat section",
+//       reason: "Reduced visibility on ghat road. Driver advisory issued.",
+//       shipmentsAffected: 1,
+//     },
+//   ],
+// };
 
-/* ── Status badge (dark) ───────────────────────────── */
+
+
+
 const STATUS_DARK = {
-  "In Transit": {
+  in_transit: {
     bg: "rgba(59,130,246,0.15)", color: "#3b82f6",
     border: "rgba(59,130,246,0.3)", glow: "rgba(59,130,246,0.15)",
     label: "In Transit",
   },
-  Delivered: {
+  delivered: {
     bg: "rgba(16,185,129,0.15)", color: "#10b981",
     border: "rgba(16,185,129,0.3)", glow: "rgba(16,185,129,0.15)",
     label: "Delivered",
   },
-  Pending: {
+  pending: {
     bg: "rgba(245,158,11,0.15)", color: "#f59e0b",
     border: "rgba(245,158,11,0.3)", glow: "rgba(245,158,11,0.1)",
     label: "Pending",
@@ -136,6 +140,14 @@ const ArrowIcon = () => (
 );
 
 export default function ShipmentDetail() {
+  const { id } = useParams();
+  const { shipments, loading } = useShipments();
+
+  const shipment = shipments.find(s => s.shipmentId === id);
+
+  if (loading || !shipment) {
+    return <div style={{ padding: "40px", color: "#fff" }}>Loading...</div>;
+  }
   return (
     <div style={{
       background: "#030712", minHeight: "100vh",
@@ -157,12 +169,12 @@ export default function ShipmentDetail() {
               fontSize: "40px", fontWeight: 900, fontFamily: "monospace",
               color: "#f9fafb", letterSpacing: "-0.02em", margin: "0 0 8px", lineHeight: 1,
             }}>
-              {shipment.id}
+              {shipment.shipmentId}
             </h1>
             <div style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "16px", color: "#6b7280" }}>
-              <span style={{ color: "#d1d5db" }}>{shipment.origin}</span>
+              <span style={{ color: "#d1d5db" }}>{shipment.origin?.address}</span>
               <ArrowIcon />
-              <span style={{ color: "#d1d5db" }}>{shipment.destination}</span>
+              <span style={{ color: "#d1d5db" }}>{shipment.destination?.address}</span>
             </div>
           </div>
           <StatusPill status={shipment.status} />
@@ -183,23 +195,42 @@ export default function ShipmentDetail() {
               Shipment Details
             </h3>
 
-            <InfoRow
+            {/* <InfoRow
               label="Route"
               value={<><RouteIcon />{shipment.route}</>}
-            />
+            /> */}
             <InfoRow
               label="ETA"
-              value={<><ClockIcon /><span style={{ color: "#10b981" }}>{shipment.eta}</span></>}
+              value={<><ClockIcon /><span style={{ color: "#10b981" }}>{shipment.eta ? new Date(shipment.eta).toLocaleString() : "N/A"}</span></>}
             />
-            <InfoRow
+            {/* <InfoRow
               label="Driver"
               value={<><PersonIcon />{shipment.driver}</>}
               isLast
+            /> */}
+
+            <InfoRow
+              label="Event Impact"
+              value={`${shipment.eventImpactScore || 0}/10`}
             />
           </div>
 
           {/* ← External Events section */}
-          <ExternalEvents events={shipment.externalEvents} />
+          <ExternalEvents events={shipment.externalEvents || []} />
+          <div style={{
+              background: "#0d1117",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: "16px",
+              padding: "24px"
+            }}>
+              <h3 style={{ fontSize: "16px", marginBottom: "12px" }}>
+                AI Risk Explanation
+              </h3>
+
+              <p style={{ color: "#9ca3af", fontSize: "14px" }}>
+                {shipment.aiExplanation || "No explanation available"}
+              </p>
+            </div>
 
         </div>
       </div>

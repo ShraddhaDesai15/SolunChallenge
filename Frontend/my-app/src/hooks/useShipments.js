@@ -9,9 +9,10 @@ export function useShipments() {
   useEffect(() => {
     let isMounted = true;
 
-    const loadShipments = async () => {
+    const loadShipments = async (isInitial = false) => {
       try {
-        setLoading(true);
+        // setLoading(true);
+        if (isInitial) setLoading(true);
 
         const data = await getShipments();
 
@@ -31,9 +32,11 @@ export function useShipments() {
       }
     };
 
-    loadShipments();
+    loadShipments(true); // first load
 
-    const intervalId = setInterval(loadShipments, 5000);
+    const intervalId = setInterval(() => {
+      loadShipments(false); // no loading flash
+    }, 5000);
 
     return () => {
       isMounted = false;
