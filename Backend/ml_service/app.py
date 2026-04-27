@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 
 from flask import Flask, jsonify, request
 
@@ -77,4 +78,6 @@ def predict():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000, debug=True)
+    port = int(os.getenv("PORT", "8000"))
+    debug = os.getenv("FLASK_DEBUG", "false").lower() == "true"
+    app.run(host="0.0.0.0", port=port, debug=debug)
