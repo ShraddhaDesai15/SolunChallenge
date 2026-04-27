@@ -12,18 +12,26 @@ exports.askAI = async (req, res) => {
     let answer;
 
     try {
-      
+      // 🔥 Try Gemini first
       answer = await askGemini(question);
+
+      // If Gemini returns empty → fallback
+      if (!answer || answer.trim().length < 5) {
+        answer = getFallbackResponse(question);
+      }
+
     } catch (err) {
-      console.error("Gemini failed, using fallback");
+      console.log("Gemini failed → using fallback");
       answer = getFallbackResponse(question);
     }
 
     res.json({ answer });
 
   } catch (err) {
-    // 🔥 Guaranteed fallback
-    const fallback = getFallbackResponse(req.body.question || "");
-    res.json({ answer: fallback });
+    res.json({
+      answer: getFallbackResponse(req.body.question || "")
+    });
   }
 };
+
+module.exports = { askAI: exports.askAI };

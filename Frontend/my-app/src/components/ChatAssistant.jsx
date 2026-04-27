@@ -61,7 +61,8 @@ const ChatAssistant = () => {
       {/* --- Floating Chat Panel --- */}
       {isOpen && (
         <div style={{
-          marginBottom: "16px", width: "360px",
+          marginBottom: "16px", width: "340px",
+maxHeight: "70vh",
           background: "#0a0f1a", borderRadius: "16px",
           boxShadow: "0 24px 64px rgba(0,0,0,0.6)",
           border: "1px solid rgba(255,255,255,0.08)",
@@ -94,10 +95,12 @@ const ChatAssistant = () => {
           {/* Scrollable Message History */}
           {/* Suggested Questions */}
 <div style={{
-  padding: "12px",
+  padding: "10px",
   display: "flex",
   flexWrap: "wrap",
-  gap: "8px",
+  gap: "6px",
+  maxHeight: "90px",
+  overflowY: "auto",
   borderTop: "1px solid rgba(255,255,255,0.06)",
   background: "#0a0f1a"
 }}>
@@ -110,8 +113,8 @@ const ChatAssistant = () => {
         color: "#c4b5fd",
         border: "1px solid rgba(139,92,246,0.3)",
         borderRadius: "999px",
-        padding: "6px 12px",
-        fontSize: "12px",
+        padding: "5px 10px",
+        fontSize: "11px",
         cursor: "pointer",
         transition: "all 0.2s",
       }}
@@ -126,7 +129,15 @@ const ChatAssistant = () => {
     </button>
   ))}
 </div>
-          <div style={{ height: "384px", overflowY: "auto", padding: "16px", display: "flex", flexDirection: "column", gap: "12px", background: "#080d16" }}>
+          <div style={{
+  maxHeight: "50vh",
+  overflowY: "auto",
+  padding: "16px",
+  display: "flex",
+  flexDirection: "column",
+  gap: "12px",
+  background: "#080d16"
+}}>
             {messages.map((msg, i) => (
               <div key={i} style={{ display: "flex", justifyContent: msg.role === "user" ? "flex-end" : "flex-start" }}>
                 <div style={{

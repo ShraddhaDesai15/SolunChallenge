@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const { queryAI } = require("../controllers/aiController");
 
-router.post("/chat", queryAI);
+const { askAI } = require("../controllers/aiController");
+
+router.post("/chat", askAI);
 
 module.exports = router;
