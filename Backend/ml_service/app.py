@@ -29,18 +29,28 @@ def refresh_model():
     model, metadata = load_artifacts(MODEL_PATH, METADATA_PATH)
 
 
+def ensure_model_loaded(force_refresh=False):
+    global model, metadata
+
+    if force_refresh or model is None:
+        refresh_model()
+
+    return model, metadata or {}
+
+
 refresh_model()
 
 
 @app.get("/health")
 def health():
+    _, current_metadata = ensure_model_loaded()
     return jsonify(
         {
             "status": "ok",
             "service": "shipment-ml",
             "modelLoaded": model is not None,
-            "modelVersion": metadata.get("model_version") if metadata else None,
-            "artifactError": metadata.get("artifact_error") if metadata else None,
+            "modelVersion": current_metadata.get("model_version"),
+            "artifactError": current_metadata.get("artifact_error"),
         }
     )
 
@@ -57,14 +67,15 @@ def predict():
         )
 
     try:
+        current_model, current_metadata = ensure_model_loaded()
         features = build_feature_row(payload)
-        delay_probability = predict_delay_probability(model, features)
+        delay_probability = predict_delay_probability(current_model, features)
         risk_level = get_risk_level(delay_probability)
 
         response = {
             "delayProbability": delay_probability,
             "riskLevel": risk_level,
-            "modelVersion": metadata.get("model_version"),
+            "modelVersion": current_metadata.get("model_version"),
             "explanation": build_explanation(features, delay_probability, risk_level),
             "features": features,
         }
