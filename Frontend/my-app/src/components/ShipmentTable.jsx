@@ -35,7 +35,7 @@ export default function ShipmentTable({ shipments }) {
       marginTop: "24px",
     }}>
       {/* Table top header */}
-      <div style={{
+      <div className="shipment-table-header" style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "20px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)",
       }}>
@@ -63,7 +63,7 @@ export default function ShipmentTable({ shipments }) {
 
       {/* Table */}
       <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
+        <table style={{ width: "100%", minWidth: "760px", borderCollapse: "collapse", fontSize: "14px" }}>
           <thead>
             <tr style={{ background: "rgba(255,255,255,0.03)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
               {["Shipment ID", "Origin", "Destination", "Status", "Risk Level", "Action"].map((h, i) => (
@@ -163,6 +163,17 @@ export default function ShipmentTable({ shipments }) {
           </tbody>
         </table>
       </div>
+
+      <style>{`
+        @media (max-width: 640px) {
+          .shipment-table-header {
+            padding: 16px !important;
+            gap: 12px;
+            align-items: flex-start !important;
+            flex-direction: column;
+          }
+        }
+      `}</style>
     </div>
   );
 }

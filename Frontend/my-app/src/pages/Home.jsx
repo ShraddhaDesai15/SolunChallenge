@@ -357,6 +357,7 @@ export default function Home() {
         </div>
 
         <button
+          className="home-nav-btn"
           id="nav-open-dashboard"
           style={S.navBtn}
           onClick={handleOpenDashboard}
@@ -371,7 +372,7 @@ export default function Home() {
       <section style={S.hero}>
         <div style={S.heroBg} aria-hidden="true" />
 
-        <div style={S.heroContent}>
+        <div className="home-hero-content" style={S.heroContent}>
           {/* Eyebrow */}
           <div style={S.pill}>AI-Powered · Real-Time · Proactive</div>
 
@@ -411,7 +412,7 @@ export default function Home() {
           </div>
 
           {/* Stats row */}
-          <div style={S.statsRow}>
+          <div className="home-stats-grid" style={S.statsRow}>
             <div style={S.statCard}>
               <div style={{ ...S.statNum, color: "#f9fafb" }}>18</div>
               <div style={S.statLabel}>Active shipments</div>
@@ -439,7 +440,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div style={S.featureGrid}>
+        <div className="home-feature-grid" style={S.featureGrid}>
           {/* Card 1 */}
           <div style={S.featureCard}>
             <div style={{ ...S.featureIconWrap, background: "rgba(16,185,129,0.15)" }}>
@@ -499,6 +500,24 @@ export default function Home() {
           <ArrowRightIcon />
         </button>
       </section>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .home-nav-btn {
+            padding: 8px 12px !important;
+            font-size: 13px !important;
+          }
+
+          .home-hero-content {
+            padding: 0 16px !important;
+          }
+
+          .home-stats-grid,
+          .home-feature-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

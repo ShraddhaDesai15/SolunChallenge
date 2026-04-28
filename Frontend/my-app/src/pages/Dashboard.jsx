@@ -93,7 +93,7 @@ export default function Dashboard() {
       <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
 
         {/* ── Page Header ─────────────────────────── */}
-        <div style={{
+        <div className="dashboard-header" style={{
           padding: "32px 32px 24px",
           display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: "16px",
         }}>
@@ -116,7 +116,7 @@ export default function Dashboard() {
         </div>
 
         {/* ── Stat Cards ──────────────────────────── */}
-        <div style={{
+        <div className="dashboard-stats-grid" style={{
           display: "grid", gridTemplateColumns: "repeat(4, 1fr)",
           gap: "16px", padding: "0 32px 24px",
         }}>
@@ -127,7 +127,7 @@ export default function Dashboard() {
         </div>
 
         {/* ── Map + Quick Insights ─────────────────── */}
-        <div style={{
+        <div className="dashboard-main-grid" style={{
           display: "grid", gridTemplateColumns: "60% 1fr",
           gap: "24px", padding: "0 32px 0",
         }}>
@@ -147,7 +147,7 @@ export default function Dashboard() {
                 <p style={{ fontSize: "12px", color: "#4b5563", margin: 0 }}>Real-time route visualisation across India</p>
               </div>
               {/* Legend */}
-              <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+              <div className="dashboard-map-legend" style={{ display: "flex", gap: "16px", alignItems: "center" }}>
                 {[
                   { label: "Low",    dot: "#10b981" },
                   { label: "Medium", dot: "#f59e0b" },
@@ -225,6 +225,41 @@ export default function Dashboard() {
         }
         .dark-map-wrapper .leaflet-container {
           height: 100%;
+        }
+
+        @media (max-width: 1024px) {
+          .dashboard-stats-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+
+          .dashboard-main-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .dashboard-header {
+            padding: 24px 16px 20px !important;
+          }
+
+          .dashboard-stats-grid {
+            grid-template-columns: 1fr !important;
+            padding: 0 16px 20px !important;
+          }
+
+          .dashboard-main-grid {
+            padding: 0 16px !important;
+          }
+
+          .dashboard-map-legend {
+            gap: 10px !important;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+          }
+
+          .dark-map-wrapper {
+            height: 320px;
+          }
         }
       `}</style>
     </div>

@@ -112,7 +112,7 @@ export default function Analytics() {
       <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
 
         {/* ── Page Header ──────────────────────────── */}
-        <div style={{
+        <div className="analytics-header" style={{
           display: "flex", justifyContent: "space-between", alignItems: "flex-start",
           padding: "32px 32px 24px",
         }}>
@@ -149,7 +149,7 @@ export default function Analytics() {
         </div>
 
         {/* ── Top stat cards ───────────────────────── */}
-        <div style={{
+        <div className="analytics-top-grid" style={{
           display: "grid", gridTemplateColumns: "repeat(3, 1fr)",
           gap: "20px", padding: "0 32px", marginBottom: "32px",
         }}>
@@ -191,7 +191,7 @@ export default function Analytics() {
         </div>
 
         {/* ── Charts Row ───────────────────────────── */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", padding: "0 32px", marginBottom: "32px" }}>
+        <div className="analytics-chart-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", padding: "0 32px", marginBottom: "32px" }}>
 
           {/* Risk Distribution (Donut) */}
           <div style={cardStyle}>
@@ -226,7 +226,7 @@ export default function Analytics() {
             </ResponsiveContainer>
 
             {/* Custom legend */}
-            <div style={{ display: "flex", gap: "16px", justifyContent: "center", marginTop: "24px" }}>
+            <div className="analytics-risk-legend" style={{ display: "flex", gap: "16px", justifyContent: "center", marginTop: "24px" }}>
               {[
                 { name: "High",   color: "#ef4444", glow: "rgba(239,68,68,0.6)",   value: riskData[0].value },
                 { name: "Medium", color: "#f59e0b", glow: "rgba(245,158,11,0.6)",  value: riskData[1].value },
@@ -288,7 +288,7 @@ export default function Analytics() {
           <h3 style={{ fontSize: "20px", fontWeight: 700, color: "#f9fafb", margin: "0 0 24px" }}>
             Risk Level Guide
           </h3>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px" }}>
+          <div className="analytics-guide-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px" }}>
             {riskGuide.map(({ level, count, desc, actionLabel, bg, border, accent }) => (
               <div
                 key={level}
@@ -324,6 +324,32 @@ export default function Analytics() {
         @keyframes anlPing {
           0%, 100% { transform: scale(1);   opacity: 0.8; }
           50%       { transform: scale(2.4); opacity: 0;   }
+        }
+
+        @media (max-width: 1024px) {
+          .analytics-top-grid,
+          .analytics-chart-grid,
+          .analytics-guide-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .analytics-header {
+            padding: 24px 16px 20px !important;
+            flex-direction: column;
+            gap: 16px;
+          }
+
+          .analytics-top-grid,
+          .analytics-chart-grid {
+            padding: 0 16px !important;
+          }
+
+          .analytics-risk-legend {
+            flex-wrap: wrap;
+            gap: 12px !important;
+          }
         }
       `}</style>
     </div>

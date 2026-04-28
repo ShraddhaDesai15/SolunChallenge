@@ -219,7 +219,7 @@ export default function Simulation() {
     <div style={{ background: "#030712", minHeight: "100vh", fontFamily: "'Inter', system-ui, -apple-system, sans-serif", color: "#f9fafb" }}>
       <Navbar />
 
-      <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "40px 32px 60px" }}>
+      <div className="simulation-shell" style={{ maxWidth: "1280px", margin: "0 auto", padding: "40px 32px 60px" }}>
 
         {/* Page header */}
         <div style={{ marginBottom: "32px" }}>
@@ -232,10 +232,10 @@ export default function Simulation() {
         </div>
 
         {/* Two-column layout */}
-        <div style={{ display: "flex", gap: "24px", alignItems: "flex-start" }}>
+        <div className="simulation-layout" style={{ display: "flex", gap: "24px", alignItems: "flex-start" }}>
 
           {/* ── Left: Controls ──────────────────────── */}
-          <div style={{ width: "360px", flexShrink: 0 }}>
+          <div className="simulation-sidebar" style={{ width: "360px", flexShrink: 0 }}>
             <SimulationPanel
               onSimulate={runSimulation}
               onScenarioChange={handleScenarioChange}
@@ -300,7 +300,7 @@ export default function Simulation() {
             {result && !loading && (
               <>
                 {/* Top metric cards */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginBottom: "16px" }}>
+                <div className="simulation-metrics-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginBottom: "16px" }}>
                   <ResultCard
                     title="Delay Risk"
                     value={`${result.delay}%`}
@@ -427,7 +427,29 @@ export default function Simulation() {
         </div>
       </div>
 
-      <style>{`@keyframes sspin { to { transform: rotate(360deg); } }`}</style>
+      <style>{`
+        @keyframes sspin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 1024px) {
+          .simulation-layout {
+            flex-direction: column;
+          }
+
+          .simulation-sidebar {
+            width: 100% !important;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .simulation-shell {
+            padding: 24px 16px 48px !important;
+          }
+
+          .simulation-metrics-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

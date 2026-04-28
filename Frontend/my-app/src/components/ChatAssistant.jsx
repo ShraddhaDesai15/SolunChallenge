@@ -58,10 +58,10 @@ const ChatAssistant = () => {
 };
 
   return (
-    <div style={{ position: "fixed", bottom: "24px", right: "24px", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+    <div className="chat-assistant-root" style={{ position: "fixed", bottom: "24px", right: "24px", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
       {/* --- Floating Chat Panel --- */}
       {isOpen && (
-        <div style={{
+        <div className="chat-panel" style={{
           marginBottom: "16px", width: "340px",
 maxHeight: "70vh",
           background: "#0a0f1a", borderRadius: "16px",
@@ -242,6 +242,21 @@ maxHeight: "70vh",
         @keyframes chatBounce {
           0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
           40%            { transform: scale(1);   opacity: 1;   }
+        }
+
+        @media (max-width: 640px) {
+          .chat-assistant-root {
+            left: 12px !important;
+            right: 12px !important;
+            bottom: 12px !important;
+            align-items: stretch !important;
+          }
+
+          .chat-panel {
+            width: 100% !important;
+            max-height: calc(100vh - 96px) !important;
+            margin-bottom: 12px !important;
+          }
         }
       `}</style>
     </div>

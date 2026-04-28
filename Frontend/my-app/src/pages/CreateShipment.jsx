@@ -427,7 +427,7 @@ export default function CreateShipment() {
         }}
       />
 
-      <div style={{ maxWidth: "680px", margin: "0 auto", padding: "40px 24px 80px" }}>
+      <div className="create-shipment-shell" style={{ maxWidth: "680px", margin: "0 auto", padding: "40px 24px 80px" }}>
 
         {/* Page header */}
         <div style={{ marginBottom: "40px" }}>
@@ -440,7 +440,7 @@ export default function CreateShipment() {
         </div>
 
         {/* ── Stepper ─────────────────────────────── */}
-        <div style={{ position: "relative", display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "40px" }}>
+        <div className="create-stepper" style={{ position: "relative", display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "40px" }}>
           {/* Background connector */}
           <div style={{
             position: "absolute", top: "16px", left: "10%", right: "10%",
@@ -490,7 +490,7 @@ export default function CreateShipment() {
 
         {/* ══ STEP 0 — Route ══ */}
         {step === 0 && (
-          <div style={cardStyle}>
+          <div className="create-card" style={cardStyle}>
             <AddressSection title="Origin" prefix="origin" form={form} setNested={setNested} errors={errors} />
             <RouteSeparator />
             <AddressSection title="Destination" prefix="destination" form={form} setNested={setNested} errors={errors} />
@@ -561,12 +561,12 @@ export default function CreateShipment() {
 
         {/* ══ STEP 1 — Priority & Constraints ══ */}
         {step === 1 && (
-          <div style={cardStyle}>
+          <div className="create-card" style={cardStyle}>
 
             {/* Priority cards */}
             <section>
               <SectionLabel>Delivery Priority</SectionLabel>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginBottom: "16px" }}>
+              <div className="create-priority-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginBottom: "16px" }}>
                 {PRIORITY_OPTIONS.map((opt) => {
                   const isSelected = form.priority === opt.value;
                   const selStyle = isSelected ? priorityAccent[opt.value].sel : {};
@@ -592,7 +592,7 @@ export default function CreateShipment() {
               </div>
 
               {/* Estimates */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+              <div className="create-estimate-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
                 {[
                   { label: "Est. delivery", value: selectedPriority.desc                                          },
                   { label: "Est. cost",     value: `₹ ${selectedPriority.cost.toLocaleString("en-IN")}`           },
@@ -614,7 +614,7 @@ export default function CreateShipment() {
             {/* Constraints */}
             <section>
               <SectionLabel>Route Constraints</SectionLabel>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+              <div className="create-constraints-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                 {CONSTRAINT_OPTIONS.map((opt) => {
                   const checked = form.constraints.includes(opt.value);
                   return (
@@ -657,7 +657,7 @@ export default function CreateShipment() {
             {/* Pickup schedule */}
             <section>
               <SectionLabel>Pickup Schedule</SectionLabel>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+              <div className="create-schedule-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                 <div style={{ position: "relative" }}>
                   <InputIcon>📅</InputIcon>
                   <DarkInput
@@ -681,7 +681,7 @@ export default function CreateShipment() {
               </div>
             </section>
 
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "32px", gap: "12px" }}>
+            <div className="create-actions-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "32px", gap: "12px" }}>
               <SecondaryBtn onClick={handleBack}>← Back</SecondaryBtn>
               <div style={{ flex: 1 }}>
                 <PrimaryBtn onClick={handleNext}>Review</PrimaryBtn>
@@ -692,7 +692,7 @@ export default function CreateShipment() {
 
         {/* ══ STEP 2 — Review & Confirm ══ */}
         {step === 2 && (
-          <div style={cardStyle}>
+          <div className="create-card" style={cardStyle}>
 
             {/* Route preview */}
             <div style={{
@@ -702,7 +702,7 @@ export default function CreateShipment() {
               <p style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#4b5563", margin: "0 0 16px" }}>
                 Route Preview
               </p>
-              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+              <div className="create-route-preview" style={{ display: "flex", alignItems: "center", gap: "16px" }}>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
                   <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#10b981", border: "2px solid rgba(255,255,255,0.15)", display: "block" }} />
                   <span style={{ width: "2px", height: "24px", borderLeft: "2px dashed rgba(255,255,255,0.1)", display: "block" }} />
@@ -731,7 +731,7 @@ export default function CreateShipment() {
                     : "None",
                 },
               ].map(({ label, value }, idx, arr) => (
-                <div key={label} style={{
+                <div key={label} className="create-summary-row" style={{
                   display: "flex", justifyContent: "space-between", alignItems: "center",
                   padding: "16px 0",
                   borderBottom: idx < arr.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none",
@@ -754,7 +754,7 @@ export default function CreateShipment() {
               </div>
             )}
 
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "32px", gap: "12px" }}>
+            <div className="create-actions-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "32px", gap: "12px" }}>
               <SecondaryBtn onClick={handleBack}>← Edit</SecondaryBtn>
               <div style={{ flex: 1 }}>
                 <button
@@ -802,6 +802,34 @@ export default function CreateShipment() {
         @keyframes cspin { to { transform: rotate(360deg); } }
         select option { background: #0d1117; color: #f9fafb; }
         input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.6); cursor: pointer; }
+
+        @media (max-width: 640px) {
+          .create-shipment-shell {
+            padding: 24px 16px 64px !important;
+          }
+
+          .create-card {
+            padding: 24px !important;
+          }
+
+          .create-priority-grid,
+          .create-estimate-grid,
+          .create-constraints-grid,
+          .create-schedule-grid {
+            grid-template-columns: 1fr !important;
+          }
+
+          .create-actions-row,
+          .create-route-preview,
+          .create-summary-row {
+            flex-direction: column;
+            align-items: stretch !important;
+          }
+
+          .create-summary-row span:last-child {
+            text-align: left !important;
+          }
+        }
       `}</style>
     </div>
   );
