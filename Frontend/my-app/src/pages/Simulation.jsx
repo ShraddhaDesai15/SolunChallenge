@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Bar } from "react-chartjs-2";
 import {
   BarElement,
@@ -123,6 +123,9 @@ export default function Simulation() {
   const [preview,        setPreview]        = useState(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError,   setPreviewError]   = useState("");
+  const previewAbortRef = useRef(null);
+  const previewPayloadRef = useRef(null);
+  const previewPromiseRef = useRef(null);
 
   const handleScenarioChange = useCallback((nextScenario) => {
     setScenario(nextScenario);
@@ -130,20 +133,46 @@ export default function Simulation() {
 
   useEffect(() => {
     if (!scenario?.payload) return;
-    let isCancelled = false;
+
+    previewAbortRef.current?.abort();
+
+    const controller = new AbortController();
+    previewAbortRef.current = controller;
+    previewPayloadRef.current = JSON.stringify(scenario.payload);
+
     setPreviewLoading(true);
     setPreviewError("");
+
     const timeoutId = setTimeout(async () => {
+      const previewPromise = predictShipmentRisk(scenario.payload, {
+        signal: controller.signal,
+      });
+      previewPromiseRef.current = previewPromise;
+
       try {
-        const prediction = await predictShipmentRisk(scenario.payload);
-        if (!isCancelled) setPreview(prediction);
+        const prediction = await previewPromise;
+        if (!controller.signal.aborted) setPreview(prediction);
       } catch (err) {
-        if (!isCancelled) { setPreview(null); setPreviewError(err.message || "Preview failed"); }
+        if (err?.name === "AbortError") return;
+        if (!controller.signal.aborted) {
+          setPreview(null);
+          setPreviewError(err.message || "Preview failed");
+        }
       } finally {
-        if (!isCancelled) setPreviewLoading(false);
+        if (previewPromiseRef.current === previewPromise) {
+          previewPromiseRef.current = null;
+        }
+        if (!controller.signal.aborted) setPreviewLoading(false);
       }
     }, 350);
-    return () => { isCancelled = true; clearTimeout(timeoutId); };
+
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+      if (previewAbortRef.current === controller) {
+        previewAbortRef.current = null;
+      }
+    };
   }, [scenario]);
 
   const runSimulation = async (data) => {
@@ -151,11 +180,14 @@ export default function Simulation() {
     setError("");
     try {
       const payload = data.payload || buildModelPayload(data);
+      const payloadKey = JSON.stringify(payload);
       const prediction =
         !previewLoading && !previewError && preview &&
-        JSON.stringify(preview.features) === JSON.stringify(payload)
+        JSON.stringify(preview.features) === payloadKey
           ? preview
-          : await predictShipmentRisk(payload);
+          : previewLoading && previewPayloadRef.current === payloadKey && previewPromiseRef.current
+            ? await previewPromiseRef.current
+            : await predictShipmentRisk(payload);
       const nextResult = buildResult({ params: data.params, disruptions: data.disruptions, prediction });
       const entry = {
         id:    history.length + 1,
